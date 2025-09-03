@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Hacker Music Player</title>
+<style>
+  :root{
+    --hack-main:#ffffff;   /* теперь символы и текст белые */
+    --panel:#0b0b0b;
+    --panel2:#141414;
+    --bg:#000000;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family: monospace;
+    background: var(--bg);
+    color: var(--hack-main);
+    overflow:hidden;
+  }
+  canvas#matrix{
+    position:fixed; inset:0; z-index:0; opacity:.6;
+  }
+  .wrap{
+    position:relative; z-index:1;
+    display:flex; align-items:center; justify-content:center;
+    flex-direction:column;
+    height:100%;
+    padding:20px;
+    gap:20px;
+  }
+  /* окно для надписи */
+  .note{
+    background: var(--panel2);
+    border:1px solid var(--hack-main);
+    border-radius:10px;
+    padding:10px 20px;
+    font-size:16px;
+    color: var(--hack-main);
+    box-shadow:0 0 10px rgba(255,255,255,0.3);
+  }
+  .player-card{
+    background: var(--panel);
+    border:1px solid var(--hack-main);
+    border-radius:12px;
+    padding:12px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    width: min(600px, 95%);
+    box-shadow: 0 0 15px rgba(255,255,255,0.15);
+  }
+  .cover{
+    width:64px; height:64px;
+    background:#000;
+    border-radius:8px;
+    overflow:hidden;
+    flex-shrink:0;
+  }
+  .cover img{width:100%; height:100%; object-fit:cover;}
+  .info{flex:1; display:flex; flex-direction:column;}
+  .title{color:var(--hack-main); font-weight:bold; font-size:14px; margin-bottom:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .bar{display:flex; align-items:center; gap:8px;}
+  .time{font-size:12px; min-width:36px; text-align:center; color:var(--hack-main);}
+  input[type="range"]{
+    flex:1;
+    -webkit-appearance:none; appearance:none;
+    height:4px; background:#333;
+    border-radius:2px;
+  }
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none; appearance:none;
+    width:12px; height:12px; border-radius:50%;
+    background:var(--hack-main);
+    cursor:pointer;
+  }
+  input[type="range"]::-moz-range-thumb{
+    width:12px; height:12px; border-radius:50%;
+    background:var(--hack-main);
+    cursor:pointer;
+  }
+  .controls{display:flex; align-items:center; gap:10px; margin-top:8px;}
+  .btn{
+    background:none; border:none; color:var(--hack-main);
+    font-size:20px; cursor:pointer;
+    transition:.2s;
+  }
+  .btn:hover{opacity:0.7;}
+  /* === Telegram button === */
+  .tg-float {
+    position: fixed;
+    bottom: -100px;
+    right: 25px;
+    width: 60px; height: 60px;
+    background: var(--hack-main);
+    border-radius: 50%;
+    display: grid; place-items: center;
+    color: black;
+    text-decoration:none;
+    z-index:9999;
+    animation: pulse 2s infinite, slideUp 0.8s ease forwards;
+    animation-delay: 0s, 1s;
+  }
+  .tg-float:hover { transform: scale(1.1); }
+  .tg-float svg { width:32px; height:32px; fill:black; }
+  @keyframes pulse {
+    0% { box-shadow:0 0 10px rgba(255,255,255,0.4);}
+    50% { box-shadow:0 0 25px rgba(255,255,255,0.9);}
+    100% { box-shadow:0 0 10px rgba(255,255,255,0.4);}
+  }
+  @keyframes slideUp { to{ bottom:25px; } }
+</style>
+</head>
+<body>
+<canvas id="matrix"></canvas>
+
+<div class="wrap">
+  <!-- окно для текста -->
+  <div class="note">
+    ✍ Здесь можно написать свой текст (замени на свой).
+  </div>
+
+  <!-- карточка плеера -->
+  <div class="player-card">
+    <div class="cover"><img id="cover" src="" alt="cover"></div>
+    <div class="info">
+      <div class="title" id="trackTitle">Загрузка…</div>
+      <div class="bar">
+        <span class="time" id="curTime">0:00</span>
+        <input id="seek" type="range" min="0" max="100" step="0.1" value="0">
+        <span class="time" id="dur">0:00</span>
+      </div>
+      <div class="controls">
+        <button class="btn" id="prev">⏮</button>
+        <button class="btn" id="play">▶</button>
+        <button class="btn" id="next">⏭</button>
+        <button class="btn" id="vol">🔊</button>
+        <input id="volume" type="range" min="0" max="1" step="0.01" value="0.8" style="width:100px; display:none;">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Telegram Floating Button -->
+<a href="https://t.me/YOUR_USERNAME" target="_blank" class="tg-float" aria-label="Связаться в Telegram">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M9.993 15.682l-.396 5.582c.566 0 .811-.243 1.104-.533l2.648-2.508 
+    5.49 4.018c1.005.553 1.72.263 1.982-.926l3.597-16.79.001-.001c.319-1.482-.536-2.062-1.514-1.701L1.64 10.388c-1.444.563-1.423 1.37-.246 
+    1.74l5.579 1.74 12.947-8.169c.609-.37 1.165-.165.709.236" />
+  </svg>
+</a>
+
+<audio id="audio" preload="metadata"></audio>
+
+<script>
+/* matrix фон — теперь белые символы и без "дорожек" */
+const c=document.getElementById('matrix'),ctx=c.getContext('2d');
+function resize(){c.width=innerWidth;c.height=innerHeight;}resize();
+window.onresize=resize;
+const letters="01<>/|#@".split("");
+let font=16,cols=Math.floor(c.width/font),drops=Array(cols).fill(1);
+function draw(){
+  ctx.fillStyle="rgba(0,0,0,0.1)";
+  ctx.fillRect(0,0,c.width,c.height);
+  ctx.fillStyle="#ffffff";ctx.font=font+"px monospace";
+  drops.forEach((y,i)=>{
+    const txt=letters[Math.floor(Math.random()*letters.length)];
+    ctx.fillText(txt,i*font,y*font);
+    if(y*font>c.height&&Math.random()>0.995){drops[i]=0;}
+    drops[i]+=0.5;
+  });
+  requestAnimationFrame(draw);
+}
+draw();
+
+/* ===== Плеер ===== */
+const audio=document.getElementById('audio');
+const playBtn=document.getElementById('play');
+const prevBtn=document.getElementById('prev');
+const nextBtn=document.getElementById('next');
+const seek=document.getElementById('seek');
+const curTime=document.getElementById('curTime');
+const dur=document.getElementById('dur');
+const title=document.getElementById('trackTitle');
+const cover=document.getElementById('cover');
+const volBtn=document.getElementById('vol');
+const volSlider=document.getElementById('volume');
+
+const playlist=[
+  {title:"Track 1 — Intro",url:"https://raw.githubusercontent.com/USERNAME/REPO/main/audio/track1.mp3",cover:"https://placehold.co/64x64/000/fff?text=1"},
+  {title:"Track 2 — Night Ride",url:"https://raw.githubusercontent.com/USERNAME/REPO/main/audio/track2.mp3",cover:"https://placehold.co/64x64/000/fff?text=2"},
+  {title:"Track 3 — Neon Pulse",url:"https://raw.githubusercontent.com/USERNAME/REPO/main/audio/track3.mp3",cover:"https://placehold.co/64x64/000/fff?text=3"}
+];
+let index=0,isSeeking=false;
+function load(i){
+  index=(i+playlist.length)%playlist.length;
+  audio.src=playlist[index].url;
+  title.textContent=playlist[index].title;
+  cover.src=playlist[index].cover;
+}
+function fmt(s){if(isNaN(s))return"0:00";let m=Math.floor(s/60),ss=Math.floor(s%60).toString().padStart(2,'0');return m+":"+ss;}
+playBtn.onclick=()=>{if(audio.paused){audio.play();playBtn.textContent="⏸";}else{audio.pause();playBtn.textContent="▶";}};
+prevBtn.onclick=()=>{load(index-1);audio.play();playBtn.textContent="⏸";};
+nextBtn.onclick=()=>{load(index+1);audio.play();playBtn.textContent="⏸";};
+audio.ontimeupdate=()=>{
+  if(!isSeeking){seek.value=audio.currentTime/audio.duration*100||0;}
+  curTime.textContent=fmt(audio.currentTime);
+};
+audio.onloadedmetadata=()=>{dur.textContent=fmt(audio.duration);}
+seek.oninput=()=>{isSeeking=true;}
+seek.onchange=()=>{audio.currentTime=seek.value/100*audio.duration;isSeeking=false;}
+audio.onended=()=>{load(index+1);audio.play();}
+volBtn.onclick=()=>{volSlider.style.display=volSlider.style.display==="none"?"block":"none";}
+volSlider.oninput=()=>{audio.volume=volSlider.value;}
+
+load(0);
+</script>
+</body>
+</html>

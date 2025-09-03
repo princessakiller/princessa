@@ -6,36 +6,67 @@
 <title>Hacker Music Player</title>
 <style>
   :root{
-    --hack-main:#ffffff;
-    --panel:#0b0b0b;
-    --panel2:#141414;
-    --bg:#000000;
+    --white:#ffffff; --bg:#000000; --panel:#0b0b0b; --panel2:#141414; --muted:#333; --green:#2cff5a;
   }
   *{box-sizing:border-box}
   html,body{height:100%}
-  body{margin:0;font-family:monospace;background:var(--bg);color:var(--hack-main);overflow:hidden;}
-  canvas#matrix{position:fixed; inset:0; z-index:0; opacity:.6;}
-  .wrap{position:relative; z-index:1; display:flex; align-items:center; justify-content:center; flex-direction:column; height:100%; padding:20px; gap:20px;}
-  .note{background:var(--panel2); border:1px solid var(--hack-main); border-radius:10px; padding:10px 20px; font-size:16px; color:var(--hack-main); box-shadow:0 0 10px rgba(255,255,255,0.3);}
-  .player-card{background:var(--panel); border:1px solid var(--hack-main); border-radius:12px; padding:12px; display:flex; align-items:center; gap:12px; width:min(600px,95%); box-shadow:0 0 15px rgba(255,255,255,0.15);}
-  .cover{width:64px; height:64px; background:#000; border-radius:8px; overflow:hidden; flex-shrink:0;}
-  .cover img{width:100%; height:100%; object-fit:cover;}
-  .info{flex:1; display:flex; flex-direction:column;}
-  .title{color:var(--hack-main); font-weight:bold; font-size:14px; margin-bottom:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-  .bar{display:flex; align-items:center; gap:8px;}
-  .time{font-size:12px; min-width:36px; text-align:center; color:var(--hack-main);}
-  input[type="range"]{flex:1; -webkit-appearance:none; appearance:none; height:4px; background:#333; border-radius:2px;}
-  input[type="range"]::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:12px; height:12px; border-radius:50%; background:var(--hack-main); cursor:pointer;}
-  .controls{display:flex; align-items:center; gap:10px; margin-top:8px;}
-  .btn{background:none; border:none; color:var(--hack-main); font-size:20px; cursor:pointer;}
-  .btn:hover{opacity:.7;}
-  .tg-float{position:fixed; bottom:-100px; right:25px; width:60px; height:60px; background:var(--hack-main); border-radius:50%; display:grid; place-items:center; color:black; text-decoration:none; z-index:9999; animation:pulse 2s infinite, slideUp .8s ease forwards; animation-delay:0s,1s;}
-  .tg-float:hover{transform:scale(1.1);}
-  .tg-float svg{width:32px; height:32px; fill:black;}
-  @keyframes pulse{0%{box-shadow:0 0 10px rgba(255,255,255,.4);}50%{box-shadow:0 0 25px rgba(255,255,255,.9);}100%{box-shadow:0 0 10px rgba(255,255,255,.4);}}
-  @keyframes slideUp{to{bottom:25px;}}
-  /* Диагностический стикер */
-  .debug{position:fixed;left:12px;bottom:12px;background:#111;color:#fff;border:1px solid #444;padding:6px 10px;border-radius:8px;font:12px monospace;z-index:9999;opacity:.85}
+  body{margin:0;font-family:monospace;background:var(--bg);color:var(--white);overflow:hidden;}
+  canvas#matrix{position:fixed;inset:0;z-index:0;opacity:.6;}
+
+  .wrap{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;height:100%;padding:20px}
+  .note{background:var(--panel2);border:1px solid var(--white);border-radius:10px;padding:10px 20px;font-size:16px;box-shadow:0 0 10px rgba(255,255,255,.3);max-width:min(800px,95vw);text-align:center}
+
+  .player-card{width:min(760px,95%);background:var(--panel);border:1px solid var(--white);border-radius:12px;padding:12px;box-shadow:0 0 15px rgba(255,255,255,.15);display:flex;gap:12px;align-items:center}
+  .cover{width:64px;height:64px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#000}
+  .cover img{width:100%;height:100%;object-fit:cover}
+  .info{flex:1;display:flex;flex-direction:column}
+  .title{font-weight:700;font-size:14px;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bar{display:flex;align-items:center;gap:8px}
+  .time{font-size:12px;min-width:36px;text-align:center}
+  input[type="range"]{flex:1;height:4px;border-radius:2px;background:var(--muted);-webkit-appearance:none;appearance:none}
+  input[type="range"]::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:12px;height:12px;border-radius:50%;background:var(--white);cursor:pointer}
+  input[type="range"]::-moz-range-thumb{ width:12px;height:12px;border-radius:50%;background:var(--white);cursor:pointer}
+  .controls{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:8px}
+  .btn{background:none;border:none;color:var(--white);font-size:20px;cursor:pointer}
+  .btn:hover{opacity:.7}
+  .vol-wrap{display:flex;align-items:center;gap:8px}
+  #volume{width:120px;display:none}
+
+  /* чипы-список */
+  .list{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .chip{border:1px solid var(--muted);padding:6px 10px;border-radius:999px;cursor:pointer;user-select:none}
+  .chip.active{border-color:#fff;box-shadow:0 0 0 1px #fff inset}
+
+  /* галерея с обложками */
+  .gallery{width:min(760px,95%);display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
+  .thumb{position:relative;border:1px solid #333;border-radius:10px;overflow:hidden;background:#000;cursor:pointer}
+  .thumb img{width:100%;height:100px;object-fit:cover;display:block;filter:contrast(1.05)}
+  .thumb .cap{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(to top,rgba(0,0,0,.7),rgba(0,0,0,.0));padding:6px 8px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .thumb.active{outline:2px solid #fff; box-shadow:0 0 0 2px #fff inset}
+  .thumb::after{content:"▶";position:absolute;top:6px;right:8px;font-size:12px;opacity:.0;transition:.2s}
+  .thumb.active::after{opacity:.9}
+
+  /* Telegram */
+  .tg-float{position:fixed;bottom:-100px;right:25px;width:60px;height:60px;border-radius:50%;background:var(--green);color:#000;display:grid;place-items:center;text-decoration:none;z-index:9999;animation:pulse 2s infinite,slideUp .8s ease forwards;animation-delay:0s,1s}
+  .tg-float:hover{transform:scale(1.1)}
+  .tg-float svg{width:32px;height:32px;fill:#000}
+  @keyframes pulse{0%{box-shadow:0 0 10px rgba(44,255,90,.4)}50%{box-shadow:0 0 25px rgba(44,255,90,.9)}100%{box-shadow:0 0 10px rgba(44,255,90,.4)}}
+  @keyframes slideUp{to{bottom:25px}}
+
+  /* баннер автоплея */
+  .gate{position:fixed;inset:auto 20px 20px 20px;z-index:9999;background:#111;color:#fff;border:1px solid #444;border-radius:10px;padding:12px 14px;font:14px/1.3 monospace;display:none}
+  .gate button{margin-left:10px;background:#2cff5a;color:#000;border:none;border-radius:6px;padding:6px 10px;cursor:pointer}
+
+  /* прелоадер */
+  .loader{
+    position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:9998;
+    background:rgba(0,0,0,.35);
+  }
+  .spinner{
+    width:42px;height:42px;border:3px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;
+    animation:spin 1s linear infinite
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
@@ -50,46 +81,54 @@
       <div class="title" id="trackTitle">Загрузка…</div>
       <div class="bar">
         <span class="time" id="curTime">0:00</span>
-        <input id="seek" type="range" min="0" max="100" step="0.1" value="0">
+        <input id="seek" type="range" min="0" max="100" step="0.1" value="0" aria-label="перемотка">
         <span class="time" id="dur">0:00</span>
       </div>
       <div class="controls">
         <button class="btn" id="prev" title="Предыдущий">⏮</button>
         <button class="btn" id="play" title="Пуск/Пауза">▶</button>
         <button class="btn" id="next" title="Следующий">⏭</button>
-        <button class="btn" id="vol" title="Громкость">🔊</button>
-        <input id="volume" type="range" min="0" max="1" step="0.01" value="0.8" style="width:100px; display:none;">
+        <div class="vol-wrap">
+          <button class="btn" id="vol" title="Громкость">🔊</button>
+          <input id="volume" type="range" min="0" max="1" step="0.01" value="0.8" aria-label="громкость">
+        </div>
       </div>
+      <div class="list" id="trackList" aria-label="Плейлист"></div>
     </div>
   </div>
+
+  <!-- Галерея с обложками -->
+  <div class="gallery" id="gallery"></div>
 </div>
 
+<!-- Telegram -->
 <a href="https://t.me/YOUR_USERNAME" target="_blank" class="tg-float" aria-label="Связаться в Telegram">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.993 15.682l-.396 5.582c.566 0 .811-.243 1.104-.533l2.648-2.508 5.49 4.018c1.005.553 1.72.263 1.982-.926l3.597-16.79.001-.001c.319-1.482-.536-2.062-1.514-1.701L1.64 10.388c-1.444.563-1.423 1.37-.246 1.74l5.579 1.74 12.947-8.169c.609-.37 1.165-.165.709.236" /></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.993 15.682l-.396 5.582c.566 0 .811-.243 1.104-.533l2.648-2.508 5.49 4.018c1.005.553 1.72.263 1.982-.926l3.597-16.79.001-.001c.319-1.482-.536-2.062-1.514-1.701L1.64 10.388c-1.444.563-1.423 1.37-.246 1.74l5.579 1.74 12.947-8.169c.609-.37 1.165-.165.709.236"/></svg>
 </a>
+
+<!-- Баннер автоплея -->
+<div class="gate" id="gate">Автовоспроизведение заблокировано браузером. Нажми «Play» один раз — дальше треки будут запускаться автоматически. <button id="gateBtn">Play</button></div>
+
+<!-- Прелоадер -->
+<div class="loader" id="loader"><div class="spinner"></div></div>
 
 <audio id="audio" preload="metadata"></audio>
 
 <script>
-/* matrix фон — белые символы */
+/* ===== Матрица (бело-чёрная, медленно) ===== */
 const c=document.getElementById('matrix'),ctx=c.getContext('2d');
-function resize(){c.width=innerWidth;c.height=innerHeight;}resize();
-window.onresize=resize;
-const letters="01<>/|#@".split("");
-let font=16,cols=Math.floor(c.width/font),drops=Array(cols).fill(1);
-function draw(){
-  ctx.fillStyle="rgba(0,0,0,0.1)";
-  ctx.fillRect(0,0,c.width,c.height);
-  ctx.fillStyle="#ffffff";ctx.font=font+"px monospace";
-  drops.forEach((y,i)=>{
-    const txt=letters[Math.floor(Math.random()*letters.length)];
-    ctx.fillText(txt,i*font,y*font);
-    if(y*font>c.height&&Math.random()>0.995){drops[i]=0;}
+function resize(){c.width=innerWidth;c.height=innerHeight;} resize(); addEventListener('resize',resize);
+const letters="01<>/|#@".split(""); let font=16, cols=Math.floor(innerWidth/font), drops=Array(cols).fill(1);
+(function draw(){
+  ctx.fillStyle="rgba(0,0,0,0.1)"; ctx.fillRect(0,0,c.width,c.height);
+  ctx.fillStyle="#ffffff"; ctx.font=font+"px monospace";
+  drops.forEach((y,i)=>{ const t=letters[Math.floor(Math.random()*letters.length)];
+    ctx.fillText(t,i*font,y*font);
+    if(y*font>c.height && Math.random()>0.995) drops[i]=0;
     drops[i]+=0.5;
   });
   requestAnimationFrame(draw);
-}
-draw();
+})();
 
 /* ===== Плеер ===== */
 const audio=document.getElementById('audio');
@@ -99,51 +138,88 @@ const nextBtn=document.getElementById('next');
 const seek=document.getElementById('seek');
 const curTime=document.getElementById('curTime');
 const dur=document.getElementById('dur');
-const title=document.getElementById('trackTitle');
-const cover=document.getElementById('cover');
+const titleEl=document.getElementById('trackTitle');
+const coverEl=document.getElementById('cover');
 const volBtn=document.getElementById('vol');
 const volSlider=document.getElementById('volume');
+const listEl=document.getElementById('trackList');
+const gallery=document.getElementById('gallery');
+const gate=document.getElementById('gate');
+const gateBtn=document.getElementById('gateBtn');
+const loader=document.getElementById('loader');
 
+/* Плейлист: первым — vklube */
 const playlist=[
-  {title:"shalawa",   url:"audio/shalawa.mp3",   cover:"https://placehold.co/64x64/000/fff?text=S"},
-  {title:"kaifusha",  url:"audio/kaifusha.mp3",  cover:"https://placehold.co/64x64/000/fff?text=K"},
-  {title:"savethat",  url:"audio/savethat.mp3",  cover:"https://placehold.co/64x64/000/fff?text=ST"},
-  {title:"natura",    url:"audio/natura.mp3",    cover:"https://placehold.co/64x64/000/fff?text=N"},
-  {title:"vklube",    url:"audio/vklube.mp3",    cover:"https://placehold.co/64x64/000/fff?text=V"}
+  {title:"vklube",   url:"audio/vklube.mp3",   cover:"covers/vklube.png"},
+  {title:"shalawa",  url:"audio/shalawa.mp3",  cover:"covers/shalawa.png"},
+  {title:"kaifusha", url:"audio/kaifusha.mp3", cover:"covers/kaifusha.png"},
+  {title:"savethat", url:"audio/savethat.mp3", cover:"covers/savethat.png"},
+  {title:"natura",   url:"audio/natura.mp3",   cover:"covers/natura.png"},
 ];
 
-let index=0,isSeeking=false;
+let index=0, isSeeking=false, unlocked=false, pendingAuto=false;
+
+function renderList(){
+  listEl.innerHTML=''; playlist.forEach((t,i)=>{
+    const b=document.createElement('button');
+    b.className='chip'; b.textContent=`${i+1}. ${t.title}`;
+    if(i===index) b.classList.add('active');
+    b.addEventListener('click', ()=>{ load(i); autoPlay(); });
+    listEl.appendChild(b);
+  });
+}
+function renderGallery(){
+  gallery.innerHTML=''; playlist.forEach((t,i)=>{
+    const d=document.createElement('div'); d.className='thumb';
+    d.innerHTML=`<img src="${t.cover}" alt="${t.title}"><div class="cap">${t.title}</div>`;
+    if(i===index) d.classList.add('active');
+    d.addEventListener('click', ()=>{ load(i); autoPlay(); });
+    gallery.appendChild(d);
+  });
+}
+function highlight(){
+  [...listEl.children].forEach((el,i)=> el.classList.toggle('active', i===index));
+  [...gallery.children].forEach((el,i)=> el.classList.toggle('active', i===index));
+}
+
 function load(i){
   index=(i+playlist.length)%playlist.length;
+  showLoader(true);
   audio.src=playlist[index].url;
-  title.textContent=playlist[index].title;
-  cover.src=playlist[index].cover;
-  debugSet("Загружаю: "+audio.src);
+  titleEl.textContent=playlist[index].title;
+  coverEl.src=playlist[index].cover;
+  highlight();
 }
-function fmt(s){if(isNaN(s))return"0:00";let m=Math.floor(s/60),ss=Math.floor(s%60).toString().padStart(2,'0');return m+":"+ss;}
-playBtn.onclick=()=>{if(audio.paused){audio.play().then(()=>debugSet("▶ Воспроизведение")).catch(e=>debugSet("Автовоспроизведение заблокировано: нажми Play"));playBtn.textContent="⏸";}else{audio.pause();playBtn.textContent="▶";debugSet("⏸ Пауза");}};
-prevBtn.onclick=()=>{load(index-1);audio.play();playBtn.textContent="⏸";};
-nextBtn.onclick=()=>{load(index+1);audio.play();playBtn.textContent="⏸";};
-audio.addEventListener('timeupdate', ()=>{
-  if(!isSeeking){seek.value=(audio.currentTime/(audio.duration||1))*100;}
-  curTime.textContent=fmt(audio.currentTime);
-});
-audio.addEventListener('loadedmetadata', ()=>{dur.textContent=fmt(audio.duration); debugSet("Метаданные ок ✓ ("+Math.round(audio.duration)+"s)")});
-seek.oninput=()=>{isSeeking=true;}
-seek.onchange=()=>{audio.currentTime=(seek.value/100)*(audio.duration||0);isSeeking=false;}
-audio.addEventListener('ended', ()=>{load(index+1);audio.play();});
-volBtn.onclick=()=>{volSlider.style.display=volSlider.style.display==="none"?"block":"none";}
-volSlider.oninput=()=>{audio.volume=volSlider.value;}
-audio.addEventListener('error', ()=>{
-  const e=audio.error; const map={1:"ABORTED",2:"NETWORK",3:"DECODE",4:"SRC_NOT_SUPPORTED"};
-  debugSet("Ошибка audio: "+(map[e?.code]||"UNKNOWN")+" | "+audio.currentSrc);
-});
+function fmt(s){ if(isNaN(s)) return "0:00"; const m=Math.floor(s/60); const ss=Math.floor(s%60).toString().padStart(2,'0'); return `${m}:${ss}`; }
+function setPlayIcon(p){ playBtn.textContent = p ? "⏸" : "▶"; }
+function showGate(){ gate.style.display='block'; }
+function hideGate(){ gate.style.display='none'; unlocked=true; if(pendingAuto){ pendingAuto=false; audio.play().then(()=>setPlayIcon(true)); } }
+function autoPlay(){ if(!unlocked){ pendingAuto=true; showGate(); return; } audio.play().then(()=>setPlayIcon(true)); }
+function showLoader(v){ loader.style.display = v ? 'flex' : 'none'; }
 
-load(0);
+/* события */
+playBtn.onclick=()=>{ if(audio.paused){ autoPlay(); } else { audio.pause(); setPlayIcon(false); } };
+prevBtn.onclick=()=>{ load(index-1); autoPlay(); };
+nextBtn.onclick=()=>{ load(index+1); autoPlay(); };
 
-/* Debug overlay */
-const dbg=document.createElement('div'); dbg.className='debug'; dbg.id='dbg'; dbg.textContent='Статус: инициализация…'; document.body.appendChild(dbg);
-function debugSet(t){document.getElementById('dbg').textContent="Статус: "+t;}
+audio.addEventListener('loadedmetadata', ()=>{ dur.textContent=fmt(audio.duration); showLoader(false); });
+audio.addEventListener('canplay', ()=>{ showLoader(false); });
+audio.addEventListener('play', ()=>{ showLoader(false); });
+audio.addEventListener('timeupdate', ()=>{ if(!isSeeking){ seek.value = (audio.currentTime/(audio.duration||1))*100; } curTime.textContent=fmt(audio.currentTime); });
+audio.addEventListener('ended', ()=>{ load(index+1); autoPlay(); });
+
+seek.oninput=()=>{ isSeeking=true; };
+seek.onchange=()=>{ audio.currentTime = (seek.value/100)*(audio.duration||0); isSeeking=false; };
+
+volBtn.onclick=()=>{ volSlider.style.display = (volSlider.style.display==="none"||!volSlider.style.display) ? "block" : "none"; };
+volSlider.oninput=()=>{ audio.volume = volSlider.value; };
+
+gateBtn.onclick=()=>{ hideGate(); autoPlay(); };
+
+/* старт */
+renderList(); renderGallery();
+load(0);      // vklube первым
+autoPlay();   // попытка автоплея (если заблочено — покажем баннер)
 </script>
 </body>
 </html>

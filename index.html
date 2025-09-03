@@ -3,18 +3,34 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>darova</title>
+<title>killer page</title>
 <style>
   :root{
-    --white:#fff; --bg:#000; --panel:#0b0b0b; --panel2:#141414; --muted:#333; --green:#2cff5a;
+    --white:#fff; --bg:#000; --panel:#0b0b0b; --panel2:#141414;
+    --muted:#333; --green:#2cff5a;
   }
   *{box-sizing:border-box}
   html,body{height:100%}
   body{margin:0;font-family:monospace;background:var(--bg);color:var(--white);overflow:hidden;}
 
+  /* ===== matrix ===== */
   canvas#matrix{position:fixed; inset:0; z-index:0; opacity:.6;}
 
-  .wrap{position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; height:100%; padding:20px}
+  /* ===== floating covers (раскиданы по сайту) ===== */
+  .floating-covers{position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden;}
+  .floating-covers img{
+    position:absolute; width:90px; height:90px; object-fit:cover;
+    opacity:.12; filter:grayscale(1) contrast(1.1);
+    border-radius:12px; border:1px solid rgba(255,255,255,.2);
+    animation:floatY linear infinite;
+  }
+  @keyframes floatY{
+    0%   { transform:translateY(0) rotate(0deg) }
+    100% { transform:translateY(-140vh) rotate(8deg) }
+  }
+
+  /* ===== content ===== */
+  .wrap{position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; height:100%; padding:20px}
   .note{background:var(--panel2); border:1px solid var(--white); border-radius:10px; padding:10px 20px; font-size:16px; box-shadow:0 0 10px rgba(255,255,255,.3); max-width:min(800px,95vw); text-align:center}
 
   .player-card{width:min(760px,95%); background:var(--panel); border:1px solid var(--white); border-radius:12px; padding:12px; box-shadow:0 0 15px rgba(255,255,255,.15); display:flex; gap:12px; align-items:center}
@@ -33,7 +49,7 @@
   .vol-wrap{display:flex;align-items:center;gap:8px}
   #volume{width:120px;display:none}
 
-  /* только галерея */
+  /* ===== gallery only covers ===== */
   .gallery{width:min(760px,95%); display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:10px}
   .thumb{position:relative; border:1px solid #333; border-radius:10px; overflow:hidden; background:#000; cursor:pointer}
   .thumb img{width:100%; height:100px; object-fit:cover; display:block}
@@ -41,20 +57,20 @@
   .thumb::after{content:"▶"; position:absolute; top:6px; right:8px; font-size:12px; opacity:.0; transition:.2s}
   .thumb.active::after{opacity:.9}
 
-  /* TG */
-  .tg-float{position:fixed; bottom:-100px; right:25px; width:60px; height:60px; border-radius:50%; background:var(--green); color:#000; display:grid; place-items:center; text-decoration:none; z-index:9999; animation:pulse 2s infinite, slideUp .8s ease forwards; animation-delay:0s,1s}
+  /* ===== Telegram FAB ===== */
+  .tg-float{position:fixed; bottom:-100px; right:25px; width:60px; height:60px; border-radius:50%; background:var(--green); color:#000; display:grid; place-items:center; text-decoration:none; z-index:3; animation:pulse 2s infinite, slideUp .8s ease forwards; animation-delay:0s,1s}
   .tg-float:hover{transform:scale(1.1)}
   .tg-float svg{width:32px; height:32px; fill:#000}
   @keyframes pulse{0%{box-shadow:0 0 10px rgba(44,255,90,.4)}50%{box-shadow:0 0 25px rgba(44,255,90,.9)}100%{box-shadow:0 0 10px rgba(44,255,90,.4)}}
   @keyframes slideUp{to{bottom:25px}}
 
-  /* стартовый экран */
-  #startScreen{position:fixed; inset:0; background:#000; display:flex; align-items:center; justify-content:center; z-index:10000; cursor:pointer}
-  #startScreen span{color:#2cff5a; font-size:32px; font-weight:bold; animation:blink 1s infinite}
-  @keyframes blink{50%{opacity:0.3}}
+  /* ===== start screen ===== */
+  #startScreen{position:fixed; inset:0; background:rgba(0,0,0,0.85); display:flex; align-items:center; justify-content:center; z-index:4; cursor:pointer; backdrop-filter:blur(1px)}
+  #startScreen span{color:#2cff5a; font-size:32px; font-weight:bold; letter-spacing:.06em; animation:blink 1s infinite}
+  @keyframes blink{50%{opacity:.35}}
 
-  /* прелоадер */
-  .loader{position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:9998; background:rgba(0,0,0,.35)}
+  /* ===== loader ===== */
+  .loader{position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:3; background:rgba(0,0,0,.35)}
   .spinner{width:42px;height:42px;border:3px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:spin 1s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
 </style>
@@ -62,8 +78,14 @@
 <body>
 <canvas id="matrix"></canvas>
 
+<!-- рассыпанные по странице обложки -->
+<div class="floating-covers" id="floating"></div>
+
 <div class="wrap">
-  <div class="note">✍ Здесь можно написать свой текст (замени на свой).</div>
+  <div class="note">100% html</div>
+  
+<div class="wrap">
+  <div class="note">create by @ruprogrammkiller</div>
 
   <div class="player-card">
     <div class="cover"><img id="cover" src="" alt="cover"></div>
@@ -86,29 +108,31 @@
     </div>
   </div>
 
-  <!-- только галерея -->
+  <!-- галерея обложек (без подписей) -->
   <div class="gallery" id="gallery"></div>
 </div>
 
 <!-- Telegram -->
-<a href="https://t.me/YOUR_USERNAME" target="_blank" class="tg-float">
+<a href="https://t.me/YOUR_USERNAME" target="_blank" class="tg-float" aria-label="Связаться в Telegram">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.993 15.682l-.396 5.582c.566 0 .811-.243 1.104-.533l2.648-2.508 5.49 4.018c1.005.553 1.72.263 1.982-.926l3.597-16.79.001-.001c.319-1.482-.536-2.062-1.514-1.701L1.64 10.388c-1.444.563-1.423 1.37-.246 1.74l5.579 1.74 12.947-8.169c.609-.37 1.165-.165.709.236"/></svg>
 </a>
 
 <!-- стартовый экран -->
 <div id="startScreen"><span>CLICK</span></div>
 
+<!-- лоадер -->
 <div class="loader" id="loader"><div class="spinner"></div></div>
+
 <audio id="audio" preload="metadata"></audio>
 
 <script>
-/* ===== фон ===== */
+/* ===== matrix ===== */
 const c=document.getElementById('matrix'),ctx=c.getContext('2d');
 function resize(){c.width=innerWidth;c.height=innerHeight;} resize(); addEventListener('resize',resize);
 const letters="01<>/|#@".split(""); let font=16, cols=Math.floor(innerWidth/font), drops=Array(cols).fill(1);
 (function draw(){
   ctx.fillStyle="rgba(0,0,0,0.1)"; ctx.fillRect(0,0,c.width,c.height);
-  ctx.fillStyle="#fff"; ctx.font=font+"px monospace";
+  ctx.fillStyle="#ffffff"; ctx.font=font+"px monospace";
   drops.forEach((y,i)=>{ const t=letters[Math.floor(Math.random()*letters.length)];
     ctx.fillText(t,i*font,y*font);
     if(y*font>c.height && Math.random()>0.995) drops[i]=0;
@@ -117,7 +141,7 @@ const letters="01<>/|#@".split(""); let font=16, cols=Math.floor(innerWidth/font
   requestAnimationFrame(draw);
 })();
 
-/* ===== плеер ===== */
+/* ===== player ===== */
 const audio=document.getElementById('audio');
 const playBtn=document.getElementById('play');
 const prevBtn=document.getElementById('prev');
@@ -132,7 +156,9 @@ const volSlider=document.getElementById('volume');
 const gallery=document.getElementById('gallery');
 const loader=document.getElementById('loader');
 const startScreen=document.getElementById('startScreen');
+const floatingBox=document.getElementById('floating');
 
+/* playlist: klubnyak первым (обложка shalawa.png), остальные — vklube.png */
 const playlist=[
   {title:"klubnyak",      url:"audio/klubnyak.mp3",     cover:"covers/shalawa.png"},
   {title:"freestyle",     url:"audio/freestyle.mp3",    cover:"covers/vklube.png"},
@@ -140,11 +166,18 @@ const playlist=[
   {title:"obidelas",      url:"audio/obidelas.mp3",     cover:"covers/vklube.png"},
   {title:"futbolka",      url:"audio/futbolka.mp3",     cover:"covers/vklube.png"},
   {title:"solanaflipper", url:"audio/solanaflipper.mp3",cover:"covers/vklube.png"},
+  {title:"vklube",        url:"audio/vklube.mp3",       cover:"covers/vklube.png"},
+  {title:"shalawa",       url:"audio/shalawa.mp3",      cover:"covers/shalawa.png"},
+  {title:"kaifusha",      url:"audio/kaifusha.mp3",     cover:"covers/vklube.png"},
+  {title:"savethat",      url:"audio/savethat.mp3",     cover:"covers/vklube.png"},
+  {title:"natura",        url:"audio/natura.mp3",       cover:"covers/vklube.png"},
 ];
+
 let index=0, isSeeking=false;
 
 function renderGallery(){
-  gallery.innerHTML=''; playlist.forEach((t,i)=>{
+  gallery.innerHTML='';
+  playlist.forEach((t,i)=>{
     const d=document.createElement('div'); d.className='thumb';
     d.innerHTML=`<img src="${t.cover}" alt="">`;
     if(i===index) d.classList.add('active');
@@ -152,7 +185,7 @@ function renderGallery(){
     gallery.appendChild(d);
   });
 }
-function highlight(){[...gallery.children].forEach((el,i)=> el.classList.toggle('active',i===index));}
+function highlight(){[...gallery.children].forEach((el,i)=> el.classList.toggle('active', i===index));}
 
 function load(i){
   index=(i+playlist.length)%playlist.length;
@@ -162,11 +195,12 @@ function load(i){
   coverEl.src=playlist[index].cover;
   highlight();
 }
+
 function fmt(s){if(isNaN(s))return"0:00";const m=Math.floor(s/60);const ss=Math.floor(s%60).toString().padStart(2,'0');return `${m}:${ss}`;}
 function setPlayIcon(p){playBtn.textContent=p?"⏸":"▶";}
 function showLoader(v){loader.style.display=v?'flex':'none';}
 
-/* события */
+/* controls */
 playBtn.onclick=()=>{if(audio.paused){audio.play();setPlayIcon(true);}else{audio.pause();setPlayIcon(false);}};
 prevBtn.onclick=()=>{load(index-1);audio.play();};
 nextBtn.onclick=()=>{load(index+1);audio.play();};
@@ -184,12 +218,33 @@ seek.onchange=()=>{audio.currentTime=(seek.value/100)*(audio.duration||0);isSeek
 volBtn.onclick=()=>{volSlider.style.display=(volSlider.style.display==="none"||!volSlider.style.display)?"block":"none";};
 volSlider.oninput=()=>{audio.volume=volSlider.value;};
 
-/* стартовый экран */
+/* start screen click -> автоплей */
 startScreen.onclick=()=>{
   startScreen.style.display="none";
-  renderGallery(); load(0);
+  renderGallery(); load(0);   // klubnyak первым
   audio.play();
 };
+
+/* ===== рассыпанные по сайту обложки ===== */
+function seedFloatingCovers(){
+  floatingBox.innerHTML='';
+  const covers = playlist.map(p=>p.cover);
+  const count = 16; // сколько картинок разбросать
+  for(let i=0;i<count;i++){
+    const img=document.createElement('img');
+    img.src=covers[i % covers.length];
+    const size = 70 + Math.random()*50; // 70–120px
+    img.style.width = img.style.height = size+'px';
+    img.style.left = (Math.random()*100)+'vw';
+    img.style.bottom = (-20 - Math.random()*120)+'px';
+    img.style.animationDuration = (40 + Math.random()*50) + 's';
+    img.style.animationDelay = (-Math.random()*40) + 's';
+    img.style.transform = `translateY(0) rotate(${(Math.random()*10-5).toFixed(1)}deg)`;
+    floatingBox.appendChild(img);
+  }
+}
+seedFloatingCovers();
+addEventListener('resize', seedFloatingCovers); // немного обновлять при ресайзе
 </script>
 </body>
 </html>
